@@ -1,0 +1,6 @@
+@TP2_Programacion_IV_HostAddress = http://localhost:5273
+
+GET {{TP2_Programacion_IV_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
