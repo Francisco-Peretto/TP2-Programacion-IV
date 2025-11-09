@@ -173,3 +173,12 @@ C:\Users\Usuario\source\repos\TP2 Programacion IV\TP2 Programacion IV\obj\Debug\
 C:\Users\Usuario\source\repos\TP2 Programacion IV\TP2 Programacion IV\obj\Debug\net8.0\ref\TP2 Programacion IV.dll
 C:\Users\Usuario\source\repos\TP2 Programacion IV\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.sourcelink.json
 C:\Users\Usuario\source\repos\TP2 Programacion IV\TP2 Programacion IV\bin\Debug\net8.0\BCrypt.Net-Core.dll
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.csproj.AssemblyReference.cache
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\rpswa.dswa.cache.json
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.GeneratedMSBuildEditorConfig.editorconfig
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.AssemblyInfoInputs.cache
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.AssemblyInfo.cs
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.csproj.CoreCompileInputs.cache
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.MvcApplicationPartsAssemblyInfo.cs
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.MvcApplicationPartsAssemblyInfo.cache
+F:\Documents\dev\TP2-Programacion-IV\backend\TP2 Programacion IV\obj\Debug\net8.0\TP2 Programacion IV.sourcelink.json
