@@ -1,18 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TP2_Programacion_IV.Config;
+﻿using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
-namespace TP2_Programacion_IV.Repositories;
-
-public class Repository<TEntity> where TEntity : class
+public class Repository<T> where T : class
 {
-    protected readonly ApplicationDbContext _ctx;
-    protected readonly DbSet<TEntity> _db;
+    protected readonly AppDbContext _ctx;
+    public Repository(AppDbContext ctx) => _ctx = ctx;
 
-    public Repository(ApplicationDbContext ctx) { _ctx = ctx; _db = ctx.Set<TEntity>(); }
-
-    public Task<List<TEntity>> GetAllAsync() => _db.ToListAsync();
-    public Task<TEntity?> GetByIdAsync(int id) => _db.FindAsync(id).AsTask();
-    public async Task AddAsync(TEntity e) { _db.Add(e); await _ctx.SaveChangesAsync(); }
-    public async Task UpdateAsync(TEntity e) { _ctx.Entry(e).State = EntityState.Modified; await _ctx.SaveChangesAsync(); }
-    public async Task DeleteAsync(TEntity e) { _db.Remove(e); await _ctx.SaveChangesAsync(); }
+    public IQueryable<T> Query() => _ctx.Set<T>().AsQueryable();
+    public async Task AddAsync(T entity) { _ctx.Set<T>().Add(entity); await _ctx.SaveChangesAsync(); }
+    public async Task UpdateAsync(T entity) { _ctx.Set<T>().Update(entity); await _ctx.SaveChangesAsync(); }
+    public async Task DeleteAsync(T entity) { _ctx.Set<T>().Remove(entity); await _ctx.SaveChangesAsync(); }
+    public Task<T?> GetByIdAsync(params object[] key) => _ctx.Set<T>().FindAsync(key).AsTask();
 }

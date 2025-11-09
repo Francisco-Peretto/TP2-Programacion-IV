@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TP2_Programacion_IV.Config;
+using Infrastructure.Data;
 
 namespace TP2_Programacion_IV.Services;
 
 public class AdminServices
 {
-    private readonly ApplicationDbContext _ctx;
-    public AdminServices(ApplicationDbContext ctx) => _ctx = ctx;
+    private readonly AppDbContext _ctx;
+    public AdminServices(AppDbContext ctx) => _ctx = ctx;
 
     public async Task<object> GetMetricsAsync()
     {

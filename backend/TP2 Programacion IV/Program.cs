@@ -2,18 +2,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using TP2_Programacion_IV.Config;
 using TP2_Programacion_IV.Repositories;
 using TP2_Programacion_IV.Services;
-using TP2_Programacion_IV.Models.User;
-using TP2_Programacion_IV.Models.Role;
-using TP2_Programacion_IV.Models.Course;
+using Domain.Entities;
+using Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // EF Core
-builder.Services.AddDbContext<ApplicationDbContext>(opt =>
+builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
 
 // JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -60,33 +59,55 @@ app.MapControllers();
 // Seed inicial
 using (var scope = app.Services.CreateScope())
 {
-    var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await ctx.Database.MigrateAsync();
 
-    if (!ctx.Roles.Any())
+    // === Ensure Roles ===
+    var neededRoles = new[] { "Admin", "User" };
+    foreach (var r in neededRoles)
     {
-        ctx.Roles.AddRange(new Role { Name = "Admin" }, new Role { Name = "User" });
-        await ctx.SaveChangesAsync();
+        if (!await ctx.Roles.AnyAsync(x => x.Name == r))
+            ctx.Roles.Add(new Role { Name = r });
     }
+    await ctx.SaveChangesAsync();
 
-    if (!ctx.Users.Any())
+    // Leer roles ya persistidos (fallar explícitamente si no están)
+    var adminRole = await ctx.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+    var userRole = await ctx.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+    if (adminRole == null || userRole == null)
+        throw new InvalidOperationException("No se pudieron asegurar los roles Admin/User.");
+
+    // === Ensure Users ===
+    if (!await ctx.Users.AnyAsync())
     {
         var enc = scope.ServiceProvider.GetRequiredService<EncoderServices>();
-        var adminRoleId = ctx.Roles.First(r => r.Name == "Admin").Id;
-        var userRoleId = ctx.Roles.First(r => r.Name == "User").Id;
 
-        ctx.Users.AddRange(
-            new User { Email = "admin@demo.com", PasswordHash = enc.Hash("Admin123!"), RoleId = adminRoleId },
-            new User { Email = "user@demo.com", PasswordHash = enc.Hash("User123!"), RoleId = userRoleId }
-        );
+        var admin = new User
+        {
+            UserName = "admin",
+            Email = "admin@demo.com",
+            Password = enc.Hash("Admin123!")
+        };
+        admin.Roles.Add(adminRole);
+
+        var user = new User
+        {
+            UserName = "user",
+            Email = "user@demo.com",
+            Password = enc.Hash("User123!")
+        };
+        user.Roles.Add(userRole);
+
+        ctx.Users.AddRange(admin, user);
         await ctx.SaveChangesAsync();
     }
 
-    if (!ctx.Courses.Any())
+    // === Ensure Courses ===
+    if (!await ctx.Courses.AnyAsync())
     {
         ctx.Courses.AddRange(
-            new Course { Title = "React desde cero", Category = "Web", Price = 0 },
-            new Course { Title = ".NET API con EF Core", Category = "Backend", Price = 100 }
+            new Course { Name = "React desde cero", Description = "Intro a React", Category = "Web", Price = 0m },
+            new Course { Name = ".NET API con EF Core", Description = "APIs con EFCore", Category = "Backend", Price = 100m }
         );
         await ctx.SaveChangesAsync();
     }

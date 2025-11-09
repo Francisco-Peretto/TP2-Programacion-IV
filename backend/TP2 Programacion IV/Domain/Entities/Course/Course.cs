@@ -1,5 +1,4 @@
-﻿// Domain/Entities/Curso.cs
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
@@ -16,6 +15,17 @@ public class Course
     [MaxLength(500)]
     public string? Description { get; set; }
 
-    // Many-to-many (usuarios inscritos)
-    public ICollection<UserCourse> UserCourses { get; set; } = new List<UserCourse>();
+    [Required]
+    public string Category { get; set; } = "General";
+
+    [Required]
+    public decimal Price { get; set; } = 0m;
+
+    [Required]
+    public bool IsActive { get; set; } = true;
+
+    [Required]
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<Domain.UserCourse.UserCourse> UserCourses { get; set; } = new List<Domain.UserCourse.UserCourse>();
 }
