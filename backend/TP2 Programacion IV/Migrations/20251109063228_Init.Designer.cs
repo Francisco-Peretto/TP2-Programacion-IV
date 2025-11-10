@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace TP2_Programacion_IV.Migrations
+namespace TP2_Programming_IV.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20251109063228_Init")]

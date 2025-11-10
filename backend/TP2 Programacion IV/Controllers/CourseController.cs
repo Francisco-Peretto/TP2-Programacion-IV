@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TP2_Programacion_IV.Models.Course.Dto;
-using TP2_Programacion_IV.Services;
-using TP2_Programacion_IV.Utils;
+using TP2_Programming_IV.Models.Course.Dto;
+using TP2_Programming_IV.Services;
+using TP2_Programming_IV.Utils;
 
-namespace TP2_Programacion_IV.Controllers;
+namespace TP2_Programming_IV.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,8 +14,14 @@ public class CourseController : ControllerBase
     public CourseController(CourseServices svc) => _svc = svc;
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<CoursesDTO>>> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? q = null, [FromQuery] string? category = null)
-        => Ok(await _svc.GetAllAsync(page, pageSize, q, category));
+    public async Task<ActionResult<PagedResult<CoursesDTO>>> Get(
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] string? q = null)
+    {
+        return Ok(await _svc.GetAllAsync(page, pageSize, q));
+    }
+
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<CourseDTO>> GetById(int id)

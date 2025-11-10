@@ -1,35 +1,61 @@
+using System.Text;
+using AutoMapper;
+using Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using TP2_Programacion_IV.Repositories;
-using TP2_Programacion_IV.Services;
-using Domain.Entities;
-using Infrastructure.Data;
+using TP2_Programming_IV.Repositories;
+using TP2_Programming_IV.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// EF Core
+// ---------- EF Core ----------
+var connString =
+    builder.Configuration.GetConnectionString("Default")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    opt.UseSqlServer(connString));
 
+// ---------- AutoMapper ----------
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-// JWT
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(opt =>
+// ---------- Authentication (Cookies + JWT) ----------
+var jwtKey =
+    builder.Configuration["Secrets:JWT"]
+    ?? builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("JWT secret not configured (Secrets:JWT or Jwt:Key).");
+
+builder.Services
+    .AddAuthentication(options =>
     {
-        opt.TokenValidationParameters = new()
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opt =>
+    {
+        opt.LoginPath = "/api/auth/login";
+        opt.LogoutPath = "/api/auth/logout";
+        opt.SlidingExpiration = true;
+        opt.ExpireTimeSpan = TimeSpan.FromDays(1);
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
+    {
+        opt.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey =
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero
         };
     });
+
 builder.Services.AddAuthorization();
 
-// DI repos y servicios
+// ---------- DI: Repositories & Services ----------
 builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<RoleRepository>();
@@ -37,14 +63,18 @@ builder.Services.AddScoped<RoleRepository>();
 builder.Services.AddScoped<CourseServices>();
 builder.Services.AddScoped<AuthServices>();
 builder.Services.AddScoped<AdminServices>();
-builder.Services.AddSingleton<EncoderServices>();
 
+// Make sure AuthServices can receive IEncoderServices
+builder.Services.AddSingleton<IEncoderServices, EncoderServices>();
+
+// ---------- MVC + Swagger ----------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// ---------- Middleware pipeline ----------
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -54,9 +84,10 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
-// Seed inicial
+// ---------- Seed inicial ----------
 using (var scope = app.Services.CreateScope())
 {
     var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -67,11 +98,10 @@ using (var scope = app.Services.CreateScope())
     foreach (var r in neededRoles)
     {
         if (!await ctx.Roles.AnyAsync(x => x.Name == r))
-            ctx.Roles.Add(new Role { Name = r });
+            ctx.Roles.Add(new Domain.Entities.Role { Name = r });
     }
     await ctx.SaveChangesAsync();
 
-    // Leer roles ya persistidos (fallar explícitamente si no están)
     var adminRole = await ctx.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
     var userRole = await ctx.Roles.FirstOrDefaultAsync(r => r.Name == "User");
     if (adminRole == null || userRole == null)
@@ -80,9 +110,9 @@ using (var scope = app.Services.CreateScope())
     // === Ensure Users ===
     if (!await ctx.Users.AnyAsync())
     {
-        var enc = scope.ServiceProvider.GetRequiredService<EncoderServices>();
+        var enc = scope.ServiceProvider.GetRequiredService<IEncoderServices>();
 
-        var admin = new User
+        var admin = new Domain.Entities.User
         {
             UserName = "admin",
             Email = "admin@demo.com",
@@ -90,7 +120,7 @@ using (var scope = app.Services.CreateScope())
         };
         admin.Roles.Add(adminRole);
 
-        var user = new User
+        var user = new Domain.Entities.User
         {
             UserName = "user",
             Email = "user@demo.com",
@@ -106,11 +136,12 @@ using (var scope = app.Services.CreateScope())
     if (!await ctx.Courses.AnyAsync())
     {
         ctx.Courses.AddRange(
-            new Course { Name = "React desde cero", Description = "Intro a React", Category = "Web", Price = 0m },
-            new Course { Name = ".NET API con EF Core", Description = "APIs con EFCore", Category = "Backend", Price = 100m }
+            new Domain.Entities.Course { Name = "React from scratch", Description = "Intro a React" },
+            new Domain.Entities.Course { Name = ".NET API with EF Core", Description = "APIs with EF Core"}
         );
         await ctx.SaveChangesAsync();
     }
 }
 
 app.Run();
+

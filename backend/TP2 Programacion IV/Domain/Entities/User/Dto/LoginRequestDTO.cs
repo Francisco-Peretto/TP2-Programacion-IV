@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TP2_Programacion_IV.Models.User.Dto;
+namespace TP2_Programming_IV.Models.User.Dto;
 
 public class LoginRequestDTO
 {

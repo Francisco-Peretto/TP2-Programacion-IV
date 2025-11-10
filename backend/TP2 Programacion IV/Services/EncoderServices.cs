@@ -1,6 +1,7 @@
-﻿namespace TP2_Programacion_IV.Services;
-public class EncoderServices
-{
+﻿namespace TP2_Programming_IV.Services;
+
+public class EncoderServices : IEncoderServices
+{ 
     public string Hash(string password) => BCrypt.Net.BCrypt.HashPassword(password);
-    public bool Verify(string password, string hash) => BCrypt.Net.BCrypt.Verify(password, hash);
+    public bool Verify(string password, string hashed) => BCrypt.Net.BCrypt.Verify(password, hashed);
 }

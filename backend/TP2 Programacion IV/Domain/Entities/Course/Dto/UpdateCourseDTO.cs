@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TP2_Programacion_IV.Models.Course.Dto;
+namespace TP2_Programming_IV.Models.Course.Dto;
 
 public class UpdateCourseDTO
 {
@@ -9,11 +9,4 @@ public class UpdateCourseDTO
 
     public string? Description { get; set; }
 
-    [Required, MaxLength(50)] 
-    public string Category { get; set; } = default!;
-
-    [Range(0, double.MaxValue)] 
-    public decimal Price { get; set; }
-
-    public bool IsActive { get; set; }
 }

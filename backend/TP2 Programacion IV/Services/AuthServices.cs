@@ -3,24 +3,29 @@ using System.Security.Claims;
 using System.Text;
 using Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
-using TP2_Programacion_IV.Models.User.Dto;
-using TP2_Programacion_IV.Repositories;
+using TP2_Programming_IV.Models.User.Dto;
+using TP2_Programming_IV.Repositories;
 
-namespace TP2_Programacion_IV.Services;
+namespace TP2_Programming_IV.Services;
 
 public class AuthServices
 {
     private readonly UserRepository _users;
     private readonly RoleRepository _roles;
     private readonly IConfiguration _cfg;
+    private readonly IEncoderServices _encoder;   // <- interface
     private readonly EncoderServices _enc;
 
-    public AuthServices(UserRepository users, RoleRepository roles, IConfiguration cfg, EncoderServices enc)
+    public AuthServices(
+           UserRepository users,
+           RoleRepository roles,
+           IEncoderServices encoder,                 // <- interface here
+           IConfiguration cfg)
     {
         _users = users;
         _roles = roles;
+        _encoder = encoder;
         _cfg = cfg;
-        _enc = enc;
     }
 
     // ---------- LOGIN ----------

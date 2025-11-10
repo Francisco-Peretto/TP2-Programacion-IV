@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TP2_Programacion_IV.Models.User.Dto;
-using TP2_Programacion_IV.Services;
+using TP2_Programming_IV.Models.User.Dto;
+using TP2_Programming_IV.Services;
 
-namespace TP2_Programacion_IV.Controllers;
+namespace TP2_Programming_IV.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

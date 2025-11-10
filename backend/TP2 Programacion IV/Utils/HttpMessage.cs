@@ -1,4 +1,4 @@
-﻿namespace TP2_Programacion_IV.Utils
+﻿namespace TP2_Programming_IV.Utils
 {
     public class HttpMessage
     {
