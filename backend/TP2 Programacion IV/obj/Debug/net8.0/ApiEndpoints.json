@@ -1,6 +1,6 @@
 [
   {
-    "ContainingType": "TP2_Programacion_IV.Controllers.AdminController",
+    "ContainingType": "TP2_Programming_IV.Controllers.AdminController",
     "Method": "GetMetrics",
     "RelativePath": "api/Admin/metrics",
     "HttpMethod": "GET",
@@ -10,7 +10,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TP2_Programacion_IV.Controllers.AuthController",
+    "ContainingType": "TP2_Programming_IV.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/Auth/login",
     "HttpMethod": "POST",
@@ -19,13 +19,13 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "TP2_Programacion_IV.Models.User.Dto.LoginRequestDTO",
+        "Type": "TP2_Programming_IV.Models.User.Dto.LoginRequestDTO",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "TP2_Programacion_IV.Models.User.Dto.LoginResponseDTO",
+        "Type": "TP2_Programming_IV.Models.User.Dto.LoginResponseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -36,7 +36,7 @@
     ]
   },
   {
-    "ContainingType": "TP2_Programacion_IV.Controllers.CourseController",
+    "ContainingType": "TP2_Programming_IV.Controllers.CourseController",
     "Method": "Get",
     "RelativePath": "api/Course",
     "HttpMethod": "GET",
@@ -57,16 +57,11 @@
         "Name": "q",
         "Type": "System.String",
         "IsRequired": false
-      },
-      {
-        "Name": "category",
-        "Type": "System.String",
-        "IsRequired": false
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "TP2_Programacion_IV.Utils.PagedResult\u00601[[TP2_Programacion_IV.Models.Course.Dto.CoursesDTO, TP2 Programacion IV, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "TP2_Programming_IV.Utils.PagedResult\u00601[[TP2_Programming_IV.Models.Course.Dto.CoursesDTO, TP2 Programacion IV, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -77,7 +72,7 @@
     ]
   },
   {
-    "ContainingType": "TP2_Programacion_IV.Controllers.CourseController",
+    "ContainingType": "TP2_Programming_IV.Controllers.CourseController",
     "Method": "Create",
     "RelativePath": "api/Course",
     "HttpMethod": "POST",
@@ -86,14 +81,14 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "TP2_Programacion_IV.Models.Course.Dto.CreateCourseDTO",
+        "Type": "TP2_Programming_IV.Models.Course.Dto.CreateCourseDTO",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TP2_Programacion_IV.Controllers.CourseController",
+    "ContainingType": "TP2_Programming_IV.Controllers.CourseController",
     "Method": "GetById",
     "RelativePath": "api/Course/{id}",
     "HttpMethod": "GET",
@@ -108,7 +103,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "TP2_Programacion_IV.Models.Course.Dto.CourseDTO",
+        "Type": "TP2_Programming_IV.Models.Course.Dto.CourseDTO",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -119,7 +114,7 @@
     ]
   },
   {
-    "ContainingType": "TP2_Programacion_IV.Controllers.CourseController",
+    "ContainingType": "TP2_Programming_IV.Controllers.CourseController",
     "Method": "Update",
     "RelativePath": "api/Course/{id}",
     "HttpMethod": "PUT",
@@ -133,14 +128,14 @@
       },
       {
         "Name": "dto",
-        "Type": "TP2_Programacion_IV.Models.Course.Dto.UpdateCourseDTO",
+        "Type": "TP2_Programming_IV.Models.Course.Dto.UpdateCourseDTO",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TP2_Programacion_IV.Controllers.CourseController",
+    "ContainingType": "TP2_Programming_IV.Controllers.CourseController",
     "Method": "Delete",
     "RelativePath": "api/Course/{id}",
     "HttpMethod": "DELETE",

@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>TP2_Programacion_IV</RootNamespace>
-    <UserSecretsId>some-guid-here</UserSecretsId>
+    <UserSecretsId>62a1f414-f458-47b1-8828-ff2465708511</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

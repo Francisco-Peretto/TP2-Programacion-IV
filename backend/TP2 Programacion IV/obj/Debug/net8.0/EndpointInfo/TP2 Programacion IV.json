@@ -95,13 +95,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -275,17 +268,6 @@
           "description": {
             "type": "string",
             "nullable": true
-          },
-          "category": {
-            "type": "string",
-            "nullable": true
-          },
-          "price": {
-            "type": "number",
-            "format": "double"
-          },
-          "isActive": {
-            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -301,13 +283,9 @@
             "type": "string",
             "nullable": true
           },
-          "category": {
+          "description": {
             "type": "string",
             "nullable": true
-          },
-          "price": {
-            "type": "number",
-            "format": "double"
           }
         },
         "additionalProperties": false
@@ -339,7 +317,6 @@
       },
       "CreateCourseDTO": {
         "required": [
-          "category",
           "title"
         ],
         "type": "object",
@@ -352,19 +329,6 @@
           "description": {
             "type": "string",
             "nullable": true
-          },
-          "category": {
-            "maxLength": 50,
-            "minLength": 1,
-            "type": "string"
-          },
-          "price": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          },
-          "isActive": {
-            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -403,7 +367,6 @@
       },
       "UpdateCourseDTO": {
         "required": [
-          "category",
           "title"
         ],
         "type": "object",
@@ -416,19 +379,6 @@
           "description": {
             "type": "string",
             "nullable": true
-          },
-          "category": {
-            "maxLength": 50,
-            "minLength": 1,
-            "type": "string"
-          },
-          "price": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          },
-          "isActive": {
-            "type": "boolean"
           }
         },
         "additionalProperties": false

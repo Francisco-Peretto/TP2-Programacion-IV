@@ -11,10 +11,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("some-guid-here")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("TP2 Programacion IV")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+acfdeeb8fd350f93dcb388e1f4299e26a476f06d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+261de53f8843fe268ed9353a9c148a14974cee5c")]
 [assembly: System.Reflection.AssemblyProductAttribute("TP2 Programacion IV")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TP2 Programacion IV")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
