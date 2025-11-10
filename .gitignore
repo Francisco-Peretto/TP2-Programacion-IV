@@ -1,0 +1,14 @@
+﻿.vs/
+.vscode/
+.idea/
+**/bin/
+**/obj/
+**/Debug/
+**/Release/
+*.user
+*.suo
+*.rsuser
+*.DotSettings.user
+.ncrunch
+*.sln.ide
+appsettings.Development.json
