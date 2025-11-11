@@ -1,4 +1,5 @@
-﻿.vs/
+﻿@"
+.vs/
 .vscode/
 .idea/
 **/bin/
@@ -9,6 +10,6 @@
 *.suo
 *.rsuser
 *.DotSettings.user
-.ncrunch
 *.sln.ide
 appsettings.Development.json
+"@ | Out-File -Encoding UTF8 .gitignore
