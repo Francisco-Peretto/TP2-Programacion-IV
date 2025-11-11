@@ -360,7 +360,7 @@
             "nullable": true
           },
           "user": {
-            "$ref": "#/components/schemas/UsuarioDTO"
+            "$ref": "#/components/schemas/UserDTO"
           }
         },
         "additionalProperties": false
@@ -383,7 +383,7 @@
         },
         "additionalProperties": false
       },
-      "UsuarioDTO": {
+      "UserDTO": {
         "type": "object",
         "properties": {
           "id": {
@@ -394,7 +394,11 @@
             "type": "string",
             "nullable": true
           },
-          "role": {
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "roleName": {
             "type": "string",
             "nullable": true
           }

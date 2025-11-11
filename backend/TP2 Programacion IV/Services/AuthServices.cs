@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
+using TP2_Programacion_IV.Models.User.Dto;
 using TP2_Programming_IV.Models.User.Dto;
 using TP2_Programming_IV.Repositories;
 
@@ -13,14 +14,9 @@ public class AuthServices
     private readonly UserRepository _users;
     private readonly RoleRepository _roles;
     private readonly IConfiguration _cfg;
-    private readonly IEncoderServices _encoder;   // <- interface
-    private readonly EncoderServices _enc;
+    private readonly IEncoderServices _encoder;
 
-    public AuthServices(
-           UserRepository users,
-           RoleRepository roles,
-           IEncoderServices encoder,                 // <- interface here
-           IConfiguration cfg)
+    public AuthServices(UserRepository users, RoleRepository roles, IEncoderServices encoder, IConfiguration cfg)
     {
         _users = users;
         _roles = roles;
@@ -41,7 +37,7 @@ public class AuthServices
             throw new UnauthorizedAccessException("Credenciales inválidas.");
 
         // Verify password
-        if (!_enc.Verify(dto.Password, user.Password))
+        if (!_encoder.Verify(dto.Password, user.Password))
             throw new UnauthorizedAccessException("Credenciales inválidas.");
 
         // Take the first role (since UsuarioDTO expects a single string)
@@ -51,14 +47,14 @@ public class AuthServices
         var token = GenerateJwtToken(user, roleName);
 
         // Build DTOs
-        var usuarioDto = new UsuarioDTO(user.Id, user.Email, roleName);
+        var usuarioDto = new UserDTO(user.Id, user.UserName, user.Email, user.RoleName);
         var response = new LoginResponseDTO(token, usuarioDto);
 
         return response;
     }
 
     // ---------- REGISTER ----------
-    public async Task<UsuarioDTO> RegisterAsync(RegisterRequestDTO dto)
+    public async Task<UserDTO> RegisterAsync(RegisterRequestDTO dto)
     {
         if (dto.Password != dto.ConfirmPassword)
             throw new ArgumentException("Las contraseñas no coinciden.");
@@ -67,7 +63,7 @@ public class AuthServices
         if (existing != null)
             throw new InvalidOperationException("El email ya está registrado.");
 
-        var hashed = _enc.Hash(dto.Password);
+        var hashed = _encoder.Hash(dto.Password);
 
         var newUser = new User
         {
@@ -83,7 +79,13 @@ public class AuthServices
 
         await _users.AddAsync(newUser);
 
-        return new UsuarioDTO(newUser.Id, newUser.Email, defaultRole?.Name ?? "User");
+        return new UserDTO(
+             newUser.Id,
+             newUser.Email,
+             newUser.UserName,
+             defaultRole?.Name ?? "User"
+         );
+
     }
 
     // ---------- HELPER: Generate JWT ----------

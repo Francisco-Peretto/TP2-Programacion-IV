@@ -1,8 +1,8 @@
-﻿// Domain/Entities/Usuario.cs
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities;
+
 public class User
 {
     [Key]
@@ -18,9 +18,14 @@ public class User
     [Required]
     public string Password { get; set; } = null!;
 
-    // Many-to-many to roles
-    public ICollection<Role> Roles { get; set; } = new List<Role>();
+    // 🔹 Foreign key to Role
+    [Required]
+    public int RoleId { get; set; }
 
-    // Many-to-many to courses (usuario <-> course)
+    // 🔹 Navigation property
+    [ForeignKey(nameof(RoleId))]
+    public Role? Role { get; set; }
+
+    // 🔹 Many-to-many (User ↔ Course)
     public ICollection<Domain.UserCourse.UserCourse> UserCourses { get; set; } = new List<Domain.UserCourse.UserCourse>();
 }

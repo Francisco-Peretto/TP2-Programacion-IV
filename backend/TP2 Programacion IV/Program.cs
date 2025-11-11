@@ -118,7 +118,8 @@ using (var scope = app.Services.CreateScope())
             Email = "admin@demo.com",
             Password = enc.Hash("Admin123!")
         };
-        admin.Roles.Add(adminRole);
+        admin.Role = adminRole;
+
 
         var user = new Domain.Entities.User
         {
@@ -126,7 +127,7 @@ using (var scope = app.Services.CreateScope())
             Email = "user@demo.com",
             Password = enc.Hash("User123!")
         };
-        user.Roles.Add(userRole);
+        user.Role = userRole;
 
         ctx.Users.AddRange(admin, user);
         await ctx.SaveChangesAsync();

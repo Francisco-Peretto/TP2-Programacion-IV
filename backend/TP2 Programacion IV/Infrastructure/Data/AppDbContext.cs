@@ -26,20 +26,13 @@ public class AppDbContext : DbContext
             .HasIndex(u => u.UserName)
             .IsUnique();
 
-        // Many-to-many Usuario <-> Role via shadow join table
+        // One Role per User; a Role has many Users
         modelBuilder.Entity<User>()
-            .HasMany(u => u.Roles)
+            .HasOne(u => u.Role)
             .WithMany(r => r.Users)
-            .UsingEntity<Dictionary<string, object>>(
-                "UserRole",
-                j => j.HasOne<Role>().WithMany().HasForeignKey("RoleId"),
-                j => j.HasOne<User>().WithMany().HasForeignKey("UserId"),
-                j =>
-                {
-                    j.HasKey("UserId", "RoleId");
-                    j.ToTable("UserRole");
-                }
-            );
+            .HasForeignKey(u => u.RoleId)
+            .OnDelete(DeleteBehavior.Restrict); 
+
 
         // Many-to-many Usuario <-> Curso via explicit join entity
         modelBuilder.Entity<UserCourse>()
