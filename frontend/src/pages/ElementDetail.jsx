@@ -1,23 +1,33 @@
-import { useEffect, useState } from "react";
-import { useRoute } from "wouter";
-import api from "../api/axios";
+import React, { useEffect, useState } from "react";
+import { api } from "../api/axios";
 
-export default function ElementDetail() {
-    const [, params] = useRoute("/elementos/:id");
-    const id = Number(params?.id);
-    const [item, setItem] = useState(null);
+export default function ElementDetail({ id }) {
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        api.get(`/courses/${id}`).then((r) => setItem(r.data));
-    }, [id]);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get(`/elementos/${id}`);
+        if (alive) setItem(data);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, [id]);
 
-    if (!item) return <div>Cargando...</div>;
+  if (loading) return <div className="p-6">Cargando…</div>;
+  if (!item) return <div className="p-6">No encontrado</div>;
 
-    return (
-        <article>
-            <h2>{item.title}</h2>
-            <p>{item.description}</p>
-            <p>Categoría: {item.category} | Precio: {item.price}</p>
-        </article>
-    );
+  return (
+    <div className="p-6 space-y-2">
+      <h1 className="text-xl font-semibold">{item.title}</h1>
+      <div className="text-gray-700">{item.description}</div>
+      <div className="text-sm text-gray-500">Categoría: {item.category}</div>
+      <div className="text-sm text-gray-500">Cantidad: {item.quantity}</div>
+    </div>
+  );
 }
