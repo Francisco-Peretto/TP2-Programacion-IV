@@ -1,9 +1,33 @@
-﻿using Infrastructure.Data;
+﻿using Microsoft.EntityFrameworkCore;
 using Domain.Entities;
+using Infrastructure.Data;
 
-
-namespace TP2_Programming_IV.Repositories;
-public class RoleRepository : Repository<Role>
+public class RoleRepository
 {
-    public RoleRepository(AppDbContext ctx) : base(ctx) { }
+    private readonly AppDbContext _context;
+    public RoleRepository(AppDbContext context) => _context = context;
+
+    public async Task<IEnumerable<Role>> GetAllAsync()
+        => await _context.Roles.ToListAsync();
+
+    public async Task<Role?> GetByIdAsync(int id)
+        => await _context.Roles.FindAsync(id);
+
+    public async Task CreateAsync(Role role)
+    {
+        _context.Roles.Add(role);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Role role)
+    {
+        _context.Roles.Update(role);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(Role role)
+    {
+        _context.Roles.Remove(role);
+        await _context.SaveChangesAsync();
+    }
 }

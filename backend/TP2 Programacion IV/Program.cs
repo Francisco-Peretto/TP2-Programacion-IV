@@ -1,12 +1,14 @@
-﻿using System.Text;
-using AutoMapper;
+﻿using AutoMapper;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using TP2_Programming_IV.Repositories;
+using System.Text;
 using TP2_Programming_IV.Services;
+using TP2_Programming_IV.Repositories;
+using TP2_Programacion_IV.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,31 +17,44 @@ var connString =
     builder.Configuration.GetConnectionString("Default")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlServer(connString));
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(connString));
 
 // ---------- AutoMapper ----------
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-// ---------- Authentication (Cookies + JWT) ----------
+// ---------- Authentication (Cookies + JWT with policy switch) ----------
 var jwtKey =
     builder.Configuration["Secrets:JWT"]
     ?? builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("JWT secret not configured (Secrets:JWT or Jwt:Key).");
 
+// Policy scheme decides per-request whether to use Cookie or Bearer
 builder.Services
     .AddAuthentication(options =>
     {
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = "MultiAuth";
+        options.DefaultChallengeScheme = "MultiAuth";
+    })
+    .AddPolicyScheme("MultiAuth", "CookieOrBearer", options =>
+    {
+        options.ForwardDefaultSelector = context =>
+        {
+            var authHeader = context.Request.Headers["Authorization"].ToString();
+            return (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                ? JwtBearerDefaults.AuthenticationScheme
+                : CookieAuthenticationDefaults.AuthenticationScheme;
+        };
     })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opt =>
     {
-        opt.LoginPath = "/api/auth/login";
-        opt.LogoutPath = "/api/auth/logout";
+        opt.Cookie.Name = "tp_auth";
+        opt.Cookie.HttpOnly = true;
+        opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;   // HTTPS only
+        opt.Cookie.SameSite = SameSiteMode.Strict;             // if SPA on different origin, change to None and enable CORS + credentials
         opt.SlidingExpiration = true;
         opt.ExpireTimeSpan = TimeSpan.FromDays(1);
+        opt.LoginPath = "/api/auth/login";
+        opt.LogoutPath = "/api/auth/logout";
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
     {
@@ -57,17 +72,18 @@ builder.Services.AddAuthorization();
 
 // ---------- DI: Repositories ----------
 builder.Services.AddScoped<CourseRepository>();
-builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<RoleRepository>();
+builder.Services.AddScoped<UserRepository>();
 
 // ---------- DI: Services ----------
 builder.Services.AddScoped<CourseServices>();
-builder.Services.AddScoped<UserServices>();   // ⬅️ faltaba para UserController
+builder.Services.AddScoped<UserServices>();
 builder.Services.AddScoped<AuthServices>();
 builder.Services.AddScoped<AdminServices>();
+builder.Services.AddScoped<RoleServices>();
 
 // ---------- Utils ----------
-builder.Services.AddScoped<IEncoderServices, EncoderServices>(); // mejor scoped que singleton
+builder.Services.AddScoped<IEncoderServices, EncoderServices>();
 
 // ---------- MVC + Swagger ----------
 builder.Services.AddControllers();
@@ -84,6 +100,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

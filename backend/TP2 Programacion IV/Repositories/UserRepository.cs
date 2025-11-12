@@ -30,7 +30,7 @@ public class UserRepository
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Email == email);
 
-    // Nombre estándar que usas en el servicio
+    // Nombre standard usado en el servicio
     public async Task AddAsync(User user)
     {
         _context.Users.Add(user);

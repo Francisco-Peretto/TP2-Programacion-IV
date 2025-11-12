@@ -81,6 +81,28 @@ public class AuthServices
         );
     }
 
+    // --------- UPDATE USER ROLE ---------
+    public async Task<bool> UpdateUserRoleAsync(int userId, int roleId)
+    {
+        var user = await _users.GetByIdAsync(userId);
+        if (user is null) return false;
+
+        var role = await _roles.GetByIdAsync(roleId);
+        if (role is null) return false;
+
+        user.RoleId = role.Id;
+        await _users.UpdateAsync(user);
+        return true;
+    }
+
+    // ----------- LOGOUT ----------
+    public Task<bool> LogoutAsync(string? token)
+    {
+        // Option A: stateless JWT -> no server action needed.
+        // Option B: implement a blacklist store and add the token.
+        return Task.FromResult(true);
+    }
+
     // ---------- HELPER: Generate JWT ----------
     private string GenerateJwtToken(User user, string roleName)
     {
