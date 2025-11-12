@@ -37,4 +37,14 @@ public class AuthController : ControllerBase
         var ok = await _auth.UpdateUserRoleAsync(id, dto.RoleId);
         return ok ? NoContent() : NotFound();
     }
+
+    // POST /api/auth/register
+    [HttpPost("register")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDTO dto)
+    {
+        var created = await _auth.RegisterAsync(dto);
+        // Return 201 + minimal info (no password ever)
+        return CreatedAtAction(nameof(Register), new { id = created.Id }, created);
+    }
 }

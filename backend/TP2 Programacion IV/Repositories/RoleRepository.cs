@@ -30,4 +30,7 @@ public class RoleRepository
         _context.Roles.Remove(role);
         await _context.SaveChangesAsync();
     }
+
+    public Task<Role?> GetByNameAsync(string name)
+    => _context.Roles.FirstOrDefaultAsync(r => r.Name == name);
 }

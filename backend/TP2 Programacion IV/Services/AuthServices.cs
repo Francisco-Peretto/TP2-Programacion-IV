@@ -47,36 +47,29 @@ public class AuthServices
     // ---------- REGISTER ----------
     public async Task<UserDTO> RegisterAsync(RegisterRequestDTO dto)
     {
-        if (dto.Password != dto.ConfirmPassword)
-            throw new ArgumentException("Las contraseñas no coinciden.");
-
+        // (Optional) check if email already exists
         var existing = await _users.GetByEmailAsync(dto.Email);
-        if (existing != null)
-            throw new InvalidOperationException("El email ya está registrado.");
+        if (existing is not null)
+            throw new InvalidOperationException("Email is already registered.");
 
-        var hashed = _encoder.Hash(dto.Password);
+        // Default role = "User"
+        var defaultRole = await _roles.GetByNameAsync("User")
+                        ?? throw new InvalidOperationException("Default role 'User' not found. Did you seed roles?");
 
-        var newUser = new User
+        var entity = new User
         {
-            Email = dto.Email,
             UserName = dto.UserName,
-            Password = hashed
+            Email = dto.Email,
+            Password = _encoder.Hash(dto.Password),
+            RoleId = defaultRole.Id
         };
 
-        // Rol por defecto: "User" (ej: id = 2)
-        var defaultRole = await _roles.GetByIdAsync(2);
-        if (defaultRole == null)
-            throw new InvalidOperationException("No existe el rol por defecto 'User'.");
-
-        // Como es 1 rol por usuario, asigna RoleId o la navegación:
-        newUser.RoleId = defaultRole.Id; // preferible para evitar problemas de tracking
-
-        await _users.AddAsync(newUser);
+        await _users.CreateAsync(entity);
 
         return new UserDTO(
-            newUser.Id,
-            newUser.Email,
-            newUser.UserName,
+            entity.Id,
+            entity.Email,
+            entity.UserName,
             defaultRole.Name
         );
     }

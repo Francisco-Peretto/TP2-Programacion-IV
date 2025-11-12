@@ -51,4 +51,11 @@ public class UserRepository
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task CreateAsync(User user)
+    {
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+    }
+
 }
