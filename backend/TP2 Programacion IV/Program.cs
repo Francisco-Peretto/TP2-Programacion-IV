@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using AutoMapper;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -55,17 +55,19 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// ---------- DI: Repositories & Services ----------
+// ---------- DI: Repositories ----------
 builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<RoleRepository>();
 
+// ---------- DI: Services ----------
 builder.Services.AddScoped<CourseServices>();
+builder.Services.AddScoped<UserServices>();   // ⬅️ faltaba para UserController
 builder.Services.AddScoped<AuthServices>();
 builder.Services.AddScoped<AdminServices>();
 
-// Make sure AuthServices can receive IEncoderServices
-builder.Services.AddSingleton<IEncoderServices, EncoderServices>();
+// ---------- Utils ----------
+builder.Services.AddScoped<IEncoderServices, EncoderServices>(); // mejor scoped que singleton
 
 // ---------- MVC + Swagger ----------
 builder.Services.AddControllers();
@@ -93,13 +95,11 @@ using (var scope = app.Services.CreateScope())
     var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await ctx.Database.MigrateAsync();
 
-    // === Ensure Roles ===
+    // Roles
     var neededRoles = new[] { "Admin", "User" };
     foreach (var r in neededRoles)
-    {
         if (!await ctx.Roles.AnyAsync(x => x.Name == r))
             ctx.Roles.Add(new Domain.Entities.Role { Name = r });
-    }
     await ctx.SaveChangesAsync();
 
     var adminRole = await ctx.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
@@ -107,7 +107,7 @@ using (var scope = app.Services.CreateScope())
     if (adminRole == null || userRole == null)
         throw new InvalidOperationException("No se pudieron asegurar los roles Admin/User.");
 
-    // === Ensure Users ===
+    // Users
     if (!await ctx.Users.AnyAsync())
     {
         var enc = scope.ServiceProvider.GetRequiredService<IEncoderServices>();
@@ -116,33 +116,31 @@ using (var scope = app.Services.CreateScope())
         {
             UserName = "admin",
             Email = "admin@demo.com",
-            Password = enc.Hash("Admin123!")
+            Password = enc.Hash("Admin123!"),
+            RoleId = adminRole.Id
         };
-        admin.Role = adminRole;
-
 
         var user = new Domain.Entities.User
         {
             UserName = "user",
             Email = "user@demo.com",
-            Password = enc.Hash("User123!")
+            Password = enc.Hash("User123!"),
+            RoleId = userRole.Id
         };
-        user.Role = userRole;
 
         ctx.Users.AddRange(admin, user);
         await ctx.SaveChangesAsync();
     }
 
-    // === Ensure Courses ===
+    // Courses
     if (!await ctx.Courses.AnyAsync())
     {
         ctx.Courses.AddRange(
             new Domain.Entities.Course { Name = "React from scratch", Description = "Intro a React" },
-            new Domain.Entities.Course { Name = ".NET API with EF Core", Description = "APIs with EF Core"}
+            new Domain.Entities.Course { Name = ".NET API with EF Core", Description = "APIs with EF Core" }
         );
         await ctx.SaveChangesAsync();
     }
 }
 
 app.Run();
-

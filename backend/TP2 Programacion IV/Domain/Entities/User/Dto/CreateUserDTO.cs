@@ -1,11 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace TP2_Programacion_IV.Models.User.Dto;
+﻿namespace TP2_Programming_IV.Models.User.Dto;
 
 public class CreateUserDTO
 {
-    [Required, EmailAddress] public string Email { get; set; } = default!;
-    [Required, MinLength(6)] public string Password { get; set; } = default!;
-    [Required] public string FullName { get; set; } = default!;
-    [Required] public int RoleId { get; set; }
+    public string UserName { get; set; } = null!;
+    public string Email { get; set; } = null!;
+    public string Password { get; set; } = null!;
+
+    // Optional — you can set default role = 2 ("User") if not provided
+    public int RoleId { get; set; } = 2;
 }

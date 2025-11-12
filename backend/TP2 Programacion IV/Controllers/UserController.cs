@@ -1,39 +1,59 @@
-﻿// In the Web API project
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using TP2_Programacion_IV.Services;
-using TP2_Programacion_IV.Models.User.Dto;
+﻿using Microsoft.AspNetCore.Mvc;
+using TP2_Programming_IV.Services;
+using TP2_Programming_IV.Models.User.Dto;
 
-namespace TP2_Programacion_IV.Controllers;
+namespace TP2_Programming_IV.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]            // -> api/User (because class is UserController)
+[Route("api/[controller]")]
 public class UserController : ControllerBase
 {
-    private readonly UserServices _svc;
-    public UserController(UserServices svc) => _svc = svc;
+    private readonly UserServices _users;
 
+    public UserController(UserServices users)
+    {
+        _users = users;
+    }
+
+    // GET: api/user
     [HttpGet]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> GetAll() => Ok(await _svc.GetAllAsync());
+    public async Task<ActionResult<IEnumerable<UserDTO>>> GetAll()
+    {
+        var result = await _users.GetAllAsync();
+        return Ok(result);
+    }
 
+    // GET: api/user/5
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Get(int id) =>
-        (await _svc.GetByIdAsync(id)) is { } u ? Ok(u) : NotFound();
+    public async Task<ActionResult<UserDTO>> GetById(int id)
+    {
+        var user = await _users.GetByIdAsync(id);
+        if (user == null) return NotFound();
+        return Ok(user);
+    }
 
+    // POST: api/user
     [HttpPost]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Create(CreateUserDTO dto) =>
-        CreatedAtAction(nameof(Get), new { id = (await _svc.CreateAsync(dto)).Id }, null);
+    public async Task<ActionResult<UserDTO>> Create([FromBody] CreateUserDTO dto)
+    {
+        var created = await _users.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
 
+    // PUT: api/user/5
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Update(int id, UpdateUserDTO dto) =>
-        await _svc.UpdateAsync(id, dto) ? NoContent() : NotFound();
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDTO dto)
+    {
+        if (id != dto.Id) return BadRequest("El id de la ruta no coincide con el del cuerpo.");
+        await _users.UpdateAsync(dto);
+        return NoContent();
+    }
 
+    // DELETE: api/user/5
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Delete(int id) =>
-        await _svc.DeleteAsync(id) ? NoContent() : NotFound();
+    public async Task<IActionResult> Delete(int id)
+    {
+        var ok = await _users.DeleteAsync(id);
+        return ok ? NoContent() : NotFound();
+    }
 }

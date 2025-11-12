@@ -12,7 +12,7 @@ public class UserRepository
         _context = context;
     }
 
-    // ✅ Get all users (with their role)
+    // Get all users (with role)
     public async Task<IEnumerable<User>> GetAllAsync()
     {
         return await _context.Users
@@ -20,12 +20,18 @@ public class UserRepository
             .ToListAsync();
     }
 
-    // Optional helpers you might already have:
-    public async Task<User?> GetByIdAsync(int id)
-        => await _context.Users.Include(u => u.Role)
-                               .FirstOrDefaultAsync(u => u.Id == id);
+    public async Task<User?> GetByIdAsync(int id) =>
+        await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == id);
 
-    public async Task CreateAsync(User user)
+    public async Task<User?> GetByEmailAsync(string email) =>
+        await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email == email);
+
+    // Nombre estándar que usas en el servicio
+    public async Task AddAsync(User user)
     {
         _context.Users.Add(user);
         await _context.SaveChangesAsync();

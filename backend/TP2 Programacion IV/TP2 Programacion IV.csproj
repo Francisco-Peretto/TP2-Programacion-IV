@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>TP2_Programacion_IV</RootNamespace>
+    <RootNamespace>TP2_Programming_IV</RootNamespace>
     <UserSecretsId>some-guid-here</UserSecretsId>
   </PropertyGroup>
 

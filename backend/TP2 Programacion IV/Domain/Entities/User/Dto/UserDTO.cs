@@ -1,3 +1,17 @@
-﻿namespace TP2_Programacion_IV.Models.User.Dto;
+﻿namespace TP2_Programming_IV.Models.User.Dto;
 
-public record UserDTO(int Id, string Email, string FullName, string RoleName);
+public class UserDTO
+{
+    public int Id { get; }
+    public string Email { get; }
+    public string UserName { get; }
+    public string RoleName { get; }
+
+    public UserDTO(int id, string email, string userName, string roleName)
+    {
+        Id = id;
+        Email = email;
+        UserName = userName;
+        RoleName = roleName;
+    }
+}

@@ -3,8 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
-using TP2_Programacion_IV.Models.User.Dto;
-using TP2_Programming_IV.Models.User.Dto;
+using TP2_Programming_IV.Models.User.Dto;   // ← usa un solo namespace de DTOs
 using TP2_Programming_IV.Repositories;
 
 namespace TP2_Programming_IV.Services;
@@ -27,30 +26,22 @@ public class AuthServices
     // ---------- LOGIN ----------
     public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO dto)
     {
-        // Validate input
         if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
             throw new ArgumentException("Email y contraseña son requeridos.");
 
-        // Find user by email
         var user = await _users.GetByEmailAsync(dto.Email);
         if (user is null)
             throw new UnauthorizedAccessException("Credenciales inválidas.");
 
-        // Verify password
         if (!_encoder.Verify(dto.Password, user.Password))
             throw new UnauthorizedAccessException("Credenciales inválidas.");
 
-        // Take the first role (since UsuarioDTO expects a single string)
-        var roleName = user.Roles.FirstOrDefault()?.Name ?? "User";
+        var roleName = user.Role?.Name ?? "User";
 
-        // Create JWT token
         var token = GenerateJwtToken(user, roleName);
 
-        // Build DTOs
-        var usuarioDto = new UserDTO(user.Id, user.UserName, user.Email, user.RoleName);
-        var response = new LoginResponseDTO(token, usuarioDto);
-
-        return response;
+        var usuarioDto = new UserDTO(user.Id, user.UserName, user.Email, roleName);
+        return new LoginResponseDTO(token, usuarioDto);
     }
 
     // ---------- REGISTER ----------
@@ -72,20 +63,22 @@ public class AuthServices
             Password = hashed
         };
 
-        // Assign default "User" role if exists
+        // Rol por defecto: "User" (ej: id = 2)
         var defaultRole = await _roles.GetByIdAsync(2);
-        if (defaultRole != null)
-            newUser.Roles.Add(defaultRole);
+        if (defaultRole == null)
+            throw new InvalidOperationException("No existe el rol por defecto 'User'.");
+
+        // Como es 1 rol por usuario, asigna RoleId o la navegación:
+        newUser.RoleId = defaultRole.Id; // preferible para evitar problemas de tracking
 
         await _users.AddAsync(newUser);
 
         return new UserDTO(
-             newUser.Id,
-             newUser.Email,
-             newUser.UserName,
-             defaultRole?.Name ?? "User"
-         );
-
+            newUser.Id,
+            newUser.Email,
+            newUser.UserName,
+            defaultRole.Name
+        );
     }
 
     // ---------- HELPER: Generate JWT ----------

@@ -1,8 +1,12 @@
-﻿namespace TP2_Programacion_IV.Models.User.Dto;
+﻿namespace TP2_Programming_IV.Models.User.Dto;
 
 public class UpdateUserDTO
 {
-    public string? Email { get; set; }
-    public string? FullName { get; set; }
-    public int? RoleId { get; set; }
+    public int Id { get; set; }
+    public string UserName { get; set; } = null!;
+    public string Email { get; set; } = null!;
+
+    public string? Password { get; set; }
+
+    public int RoleId { get; set; }
 }
