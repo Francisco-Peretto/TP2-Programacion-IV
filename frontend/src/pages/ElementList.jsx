@@ -1,35 +1,65 @@
-import { useEffect, useState } from "react";
-import api from "../api/axios";
+import React, { useEffect, useState } from "react";
+import { Link } from "wouter";
+import { api } from "../api/axios";
 
 export default function ElementList() {
-    const [items, setItems] = useState([]);
-    const [q, setQ] = useState("");
-    const [category, setCategory] = useState("");
-    const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [q, setQ] = useState("");
+  const [category, setCategory] = useState("");
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const res = await api.get("/courses", { params: { page, pageSize: 10, q, category } });
-            setItems(res.data.items || []);
-        };
-        fetchData();
-    }, [q, category, page]);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const { data } = await api.get("/elementos");
+        if (alive) setItems(data || []);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
 
-    return (
+  const filtered = items.filter(it => {
+    const matchQ = !q || it.title?.toLowerCase().includes(q.toLowerCase());
+    const matchCat = !category || it.category === category;
+    return matchQ && matchCat;
+  });
+
+  return (
+    <div className="p-6 space-y-4">
+      <div className="flex gap-2 items-end">
         <div>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar..." />
-            <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                <option value="">Todas</option>
-                <option value="Web">Web</option>
-                <option value="Data">Data</option>
-            </select>
-            <ul>
-                {items.map((i) => (
-                    <li key={i.id}>{i.title} — {i.category}</li>
-                ))}
-            </ul>
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</button>
-            <button onClick={() => setPage((p) => p + 1)}>Next</button>
+          <label className="block text-sm">Búsqueda</label>
+          <input className="border px-3 py-2" value={q} onChange={e => setQ(e.target.value)} />
         </div>
-    );
+        <div>
+          <label className="block text-sm">Categoría</label>
+          <input className="border px-3 py-2" value={category} onChange={e => setCategory(e.target.value)} />
+        </div>
+        <Link href="/admin/elementos/new" className="ml-auto">
+          <a className="bg-blue-600 text-white px-3 py-2 rounded">Nuevo</a>
+        </Link>
+      </div>
+
+      {loading && <div>Cargando…</div>}
+      {!loading && filtered.length === 0 && <div>No hay elementos</div>}
+
+      <ul className="grid gap-2">
+        {filtered.map((it) => (
+          <li key={it.id} className="border rounded p-3 flex justify-between items-center">
+            <div>
+              <div className="font-semibold">{it.title}</div>
+              <div className="text-sm text-gray-600">{it.category}</div>
+            </div>
+            <Link href={`/elementos/${it.id}`}>
+              <a className="text-blue-700 underline">Ver detalle</a>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
