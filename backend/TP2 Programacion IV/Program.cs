@@ -1,11 +1,7 @@
 ﻿using AutoMapper;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using TP2_Programming_IV.Services;
 using TP2_Programming_IV.Repositories;
 using TP2_Programacion_IV.Services;
@@ -22,52 +18,37 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(connString))
 // ---------- AutoMapper ----------
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-// ---------- Authentication (Cookies + JWT with policy switch) ----------
-var jwtKey =
-    builder.Configuration["Secrets:JWT"]
-    ?? builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("JWT secret not configured (Secrets:JWT or Jwt:Key).");
-
-// Policy scheme decides per-request whether to use Cookie or Bearer
+// ---------- Authentication (Cookies only) ----------
 builder.Services
-    .AddAuthentication(options =>
-    {
-        options.DefaultScheme = "MultiAuth";
-        options.DefaultChallengeScheme = "MultiAuth";
-    })
-    .AddPolicyScheme("MultiAuth", "CookieOrBearer", options =>
-    {
-        options.ForwardDefaultSelector = context =>
-        {
-            var authHeader = context.Request.Headers["Authorization"].ToString();
-            return (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                ? JwtBearerDefaults.AuthenticationScheme
-                : CookieAuthenticationDefaults.AuthenticationScheme;
-        };
-    })
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opt =>
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opt =>
     {
         opt.Cookie.Name = "tp_auth";
         opt.Cookie.HttpOnly = true;
-        opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;   // HTTPS only
-        opt.Cookie.SameSite = SameSiteMode.Strict;             // if SPA on different origin, change to None and enable CORS + credentials
+        opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        opt.Cookie.SameSite = SameSiteMode.Strict;
         opt.SlidingExpiration = true;
-        opt.ExpireTimeSpan = TimeSpan.FromDays(1);
+        opt.ExpireTimeSpan = TimeSpan.FromHours(2); // session length
         opt.LoginPath = "/api/auth/login";
         opt.LogoutPath = "/api/auth/logout";
-    })
-    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
-    {
-        opt.TokenValidationParameters = new TokenValidationParameters
+
+        // ⬇️ For APIs (prevent redirects)
+        opt.Events = new CookieAuthenticationEvents
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ClockSkew = TimeSpan.Zero
+            OnRedirectToLogin = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
         };
     });
 
+// ---------- Authorization ----------
 builder.Services.AddAuthorization();
 
 // ---------- DI: Repositories ----------
