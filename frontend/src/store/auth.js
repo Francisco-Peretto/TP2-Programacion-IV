@@ -1,16 +1,37 @@
+// src/store/auth.js
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { api } from "../api/axios";
 
 export const useAuthStore = create(
   persist(
     (set, get) => ({
-      token: null,
+      // ya no manejamos token
       user: null,
       role: null,
       isAuthenticated: false,
-      login: ({ token, user, role }) => set({ token, user, role, isAuthenticated: !!token }),
-      logout: () => set({ token: null, user: null, role: null, isAuthenticated: false }),
-      getToken: () => get().token,
+
+      // login: marcamos autenticado sin depender de token
+      login: ({ user, role }) =>
+        set({
+          user,
+          role,
+          isAuthenticated: true,
+        }),
+
+      // logout: limpiamos estado y avisamos al back
+      logout: async () => {
+        try {
+          await api.post("/auth/logout");
+        } catch {
+          // si falla igual limpiamos el estado
+        } finally {
+          set({ user: null, role: null, isAuthenticated: false });
+        }
+      },
+
+      // opcional: para hidratar desde /auth/me si lo agregás en el back
+      // hydrateFromServer: async () => { ... }
     }),
     { name: "auth-store" }
   )

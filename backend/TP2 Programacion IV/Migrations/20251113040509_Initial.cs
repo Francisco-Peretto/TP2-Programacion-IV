@@ -5,7 +5,7 @@
 namespace TP2_Programming_IV.Migrations
 {
     /// <inheritdoc />
-    public partial class seedsupdate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

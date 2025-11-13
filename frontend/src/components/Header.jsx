@@ -1,25 +1,73 @@
-import React from 'react';
-import { Link, useLocation } from 'wouter';
-import { useAuthStore } from '../store/auth';
+// src/components/Header.jsx
+import React from "react";
+import { Link, useLocation } from "wouter";
+import { useAuthStore } from "../store/auth";
 
-export default function Header(){
+function isAdmin(user) {
+  if (!user) return false;
+
+  const roleName =
+    user.role?.name ?? // { role: { name: "Admin" } }
+    user.role ??       // "Admin"
+    user.roleName ?? "";
+
+  if (typeof roleName === "string" && roleName) {
+    return roleName === "Admin";
+  }
+
+  if (typeof user.roleId === "number") {
+    return user.roleId === 1;
+  }
+
+  // fallback para el admin de seed
+  if (user.email === "admin@demo.com") return true;
+
+  return false;
+}
+
+export default function Header() {
   const [location] = useLocation();
-  const { isAuthenticated, authToken, logout } = useAuthStore ? useAuthStore() : { isAuthenticated:false, logout:()=>{} };
+
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+
+  const showAdmin = isAuthenticated && isAdmin(user);
+
+  // helper para marcar el botón activo
+  const navClass = (path) =>
+    `btn ${location === path ? "opacity-75 pointer-events-none" : ""}`;
 
   return (
     <header className="border-b border-[color:var(--formal-border)] bg-[var(--formal-surface)]">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link href="/"><a className="text-xl font-semibold tracking-wide">Proyecto Cursos</a></Link>
+        <Link href="/" className="text-xl font-semibold tracking-wide">
+          Proyecto Cursos
+        </Link>
+
         <nav className="flex items-center gap-3">
-          <Link href="/"><a className="btn" disabled={location === "/"}>Inicio</a></Link>
-          <Link href="/elementos"><a className="btn">Elementos</a></Link>
-          {authToken && (
-            <Link href="/admin"><a className="btn" disabled={location === "/admin"}>Admin</a></Link>
-            )}
+          <Link href="/" className={navClass("/")}>
+            Inicio
+          </Link>
+
+          <Link href="/elementos" className={navClass("/elementos")}>
+            Elementos
+          </Link>
+
+          {showAdmin && (
+            <Link href="/admin" className={navClass("/admin")}>
+              Admin
+            </Link>
+          )}
+
           {isAuthenticated ? (
-            <button onClick={logout} className="btn">Cerrar sesión</button>
+            <button onClick={logout} className="btn">
+              Cerrar sesión
+            </button>
           ) : (
-            <Link href="/login"><a className="btn" disabled={location === "/Login"}>Iniciar sesión</a></Link>
+            <Link href="/login" className={navClass("/login")}>
+              Iniciar sesión
+            </Link>
           )}
         </nav>
       </div>

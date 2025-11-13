@@ -1,21 +1,25 @@
+// src/api/axios.js
 import axios from "axios";
-import { useAuthStore } from "../store/auth";
 import { toast } from "react-toastify";
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5109/api",
-  timeout: 12000,
+  baseURL: import.meta.env.VITE_API_URL ?? "https://localhost:7245/api",
+
+  // ⬇️ MUY IMPORTANTE PARA COOKIES
+  withCredentials: true,
 });
 
+// --- Interceptor de request ---
 api.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().getToken?.();
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    // ⛔ ya NO enviamos ningún Authorization: Bearer
+    // porque el backend usa cookies, no JWT
     return config;
   },
   (error) => Promise.reject(error)
 );
 
+// --- Función para extraer errores ---
 function extractMessage(error) {
   const d = error?.response?.data;
   if (typeof d === "string") return d;
@@ -29,15 +33,22 @@ function extractMessage(error) {
   return error?.message || "Error de red";
 }
 
+// --- Interceptor de respuesta ---
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     const url = err?.config?.url || "";
+
+    // No mostrar toast en /auth/login para evitar doble alerta
     if (!url.includes("/auth/login")) {
       toast.error(extractMessage(err));
     }
-    // Optionally: auto-logout on 401/403
-    // if ([401,403].includes(err?.response?.status)) useAuthStore.getState().logout();
+
+    // Auto logout si tu app lo necesita:
+    // if ([401, 403].includes(err?.response?.status)) {
+    //   useAuthStore.getState().logout();
+    // }
+
     return Promise.reject(err);
   }
 );

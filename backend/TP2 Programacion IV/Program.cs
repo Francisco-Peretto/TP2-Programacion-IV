@@ -18,6 +18,26 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(connString))
 // ---------- AutoMapper ----------
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+// ---------- Controllers ----------
+builder.Services.AddControllers();
+
+// ---------- CORS ----------
+builder.Services.AddCors(opt =>
+{
+    opt.AddPolicy("frontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",   // Vite
+                "https://localhost:5173",
+                "http://localhost:3000"    // CRA (if you ever use it)
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // because you're using cookies
+    });
+});
+
 // ---------- Authentication (Cookies only) ----------
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -25,14 +45,13 @@ builder.Services
     {
         opt.Cookie.Name = "tp_auth";
         opt.Cookie.HttpOnly = true;
-        opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        opt.Cookie.SameSite = SameSiteMode.Strict;
+        opt.Cookie.SecurePolicy = CookieSecurePolicy.None; // permite http://localhost
+        opt.Cookie.SameSite = SameSiteMode.None;           // requerido cuando usás cookies cross-site
         opt.SlidingExpiration = true;
-        opt.ExpireTimeSpan = TimeSpan.FromHours(2); // session length
+        opt.ExpireTimeSpan = TimeSpan.FromHours(2);
         opt.LoginPath = "/api/auth/login";
         opt.LogoutPath = "/api/auth/logout";
 
-        // ⬇️ For APIs (prevent redirects)
         opt.Events = new CookieAuthenticationEvents
         {
             OnRedirectToLogin = ctx =>
@@ -47,6 +66,7 @@ builder.Services
             }
         };
     });
+
 
 // ---------- Authorization ----------
 builder.Services.AddAuthorization();
@@ -66,8 +86,7 @@ builder.Services.AddScoped<RoleServices>();
 // ---------- Utils ----------
 builder.Services.AddScoped<IEncoderServices, EncoderServices>();
 
-// ---------- MVC + Swagger ----------
-builder.Services.AddControllers();
+// ---------- Swagger ----------
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -82,10 +101,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("frontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 
 // ---------- Seed inicial ----------
 using (var scope = app.Services.CreateScope())
