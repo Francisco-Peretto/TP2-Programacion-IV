@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TP2_Programming_IV.Migrations
 {
     /// <inheritdoc />
-    public partial class migrationdb : Migration
+    public partial class @base : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
