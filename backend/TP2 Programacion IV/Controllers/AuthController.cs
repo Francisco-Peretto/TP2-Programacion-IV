@@ -13,6 +13,11 @@ public class AuthController : ControllerBase
     private readonly AuthServices _auth;
     public AuthController(AuthServices auth) => _auth = auth;
 
+    [HttpGet("whoami")]
+    [Authorize]
+    public IActionResult WhoAmI() => Ok(User.Claims.Select(c => new { c.Type, c.Value }));
+
+
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginRequestDTO dto)
     {

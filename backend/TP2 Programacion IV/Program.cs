@@ -85,21 +85,28 @@ builder.Services
 
 builder.Services.AddSwaggerGen(c =>
 {
-    var jwtScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    var scheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Enter: Bearer {your JWT}"
+        Description = "Paste only the JWT (no 'Bearer ' prefix).",
+        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+        {
+            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
     };
-    c.AddSecurityDefinition("Bearer", jwtScheme);
+
+    c.AddSecurityDefinition("Bearer", scheme);
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
-        [jwtScheme] = Array.Empty<string>()
+        { scheme, Array.Empty<string>() }
     });
 });
+
 
 
 // ---------- DI: Repositories ----------
