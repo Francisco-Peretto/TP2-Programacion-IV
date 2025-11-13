@@ -49,12 +49,27 @@ builder.Services
     {
         opt.Cookie.Name = "tp_auth";
         opt.Cookie.HttpOnly = true;
-        opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;   // HTTPS only
-        opt.Cookie.SameSite = SameSiteMode.Strict;             // if SPA on different origin, change to None and enable CORS + credentials
+        opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        opt.Cookie.SameSite = SameSiteMode.Strict;
         opt.SlidingExpiration = true;
         opt.ExpireTimeSpan = TimeSpan.FromDays(1);
         opt.LoginPath = "/api/auth/login";
         opt.LogoutPath = "/api/auth/logout";
+
+        // ⬇️ important for APIs
+        opt.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+        };
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
     {
@@ -68,7 +83,24 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddSwaggerGen(c =>
+{
+    var jwtScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter: Bearer {your JWT}"
+    };
+    c.AddSecurityDefinition("Bearer", jwtScheme);
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        [jwtScheme] = Array.Empty<string>()
+    });
+});
+
 
 // ---------- DI: Repositories ----------
 builder.Services.AddScoped<CourseRepository>();
@@ -88,7 +120,6 @@ builder.Services.AddScoped<IEncoderServices, EncoderServices>();
 // ---------- MVC + Swagger ----------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
