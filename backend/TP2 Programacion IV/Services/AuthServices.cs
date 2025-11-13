@@ -1,9 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Domain.Entities;
-using Microsoft.IdentityModel.Tokens;
-using TP2_Programming_IV.Models.User.Dto;   // ← usa un solo namespace de DTOs
+﻿using Domain.Entities;
+using TP2_Programming_IV.Models.User.Dto;
 using TP2_Programming_IV.Repositories;
 
 namespace TP2_Programming_IV.Services;
@@ -12,49 +8,41 @@ public class AuthServices
 {
     private readonly UserRepository _users;
     private readonly RoleRepository _roles;
-    private readonly IConfiguration _cfg;
     private readonly IEncoderServices _encoder;
 
-    public AuthServices(UserRepository users, RoleRepository roles, IEncoderServices encoder, IConfiguration cfg)
+    public AuthServices(UserRepository users, RoleRepository roles, IEncoderServices encoder)
     {
         _users = users;
         _roles = roles;
         _encoder = encoder;
-        _cfg = cfg;
     }
 
-    // ---------- LOGIN ----------
-    public async Task<LoginResponseDTO> LoginAsync(LoginRequestDTO dto)
+    // ---------- VALIDATE USER (used by AuthController.Login) ----------
+    public async Task<UserDTO?> ValidateUserAsync(string email, string password)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             throw new ArgumentException("Email y contraseña son requeridos.");
 
-        var user = await _users.GetByEmailAsync(dto.Email);
+        var user = await _users.GetByEmailAsync(email);
         if (user is null)
-            throw new UnauthorizedAccessException("Credenciales inválidas.");
+            return null;
 
-        if (!_encoder.Verify(dto.Password, user.Password))
-            throw new UnauthorizedAccessException("Credenciales inválidas.");
+        if (!_encoder.Verify(password, user.Password))
+            return null;
 
         var roleName = user.Role?.Name ?? "User";
-
-        var token = GenerateJwtToken(user, roleName);
-
-        var usuarioDto = new UserDTO(user.Id, user.UserName, user.Email, roleName);
-        return new LoginResponseDTO(token, usuarioDto);
+        return new UserDTO(user.Id, user.UserName, user.Email, roleName);
     }
 
     // ---------- REGISTER ----------
     public async Task<UserDTO> RegisterAsync(RegisterRequestDTO dto)
     {
-        // (Optional) check if email already exists
         var existing = await _users.GetByEmailAsync(dto.Email);
         if (existing is not null)
-            throw new InvalidOperationException("Email is already registered.");
+            throw new InvalidOperationException("Email ya registrado.");
 
-        // Default role = "User"
         var defaultRole = await _roles.GetByNameAsync("User")
-                        ?? throw new InvalidOperationException("Default role 'User' not found. Did you seed roles?");
+                        ?? throw new InvalidOperationException("Rol 'User' no encontrado. ¿Se hizo el seed inicial?");
 
         var entity = new User
         {
@@ -68,8 +56,8 @@ public class AuthServices
 
         return new UserDTO(
             entity.Id,
-            entity.Email,
             entity.UserName,
+            entity.Email,
             defaultRole.Name
         );
     }
@@ -86,37 +74,5 @@ public class AuthServices
         user.RoleId = role.Id;
         await _users.UpdateAsync(user);
         return true;
-    }
-
-    // ----------- LOGOUT ----------
-    public Task<bool> LogoutAsync(string? token)
-    {
-        // Option A: stateless JWT -> no server action needed.
-        // Option B: implement a blacklist store and add the token.
-        return Task.FromResult(true);
-    }
-
-    // ---------- HELPER: Generate JWT ----------
-    private string GenerateJwtToken(User user, string roleName)
-    {
-        var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Role, roleName)
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_cfg["Jwt:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: _cfg["Jwt:Issuer"],
-            audience: _cfg["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
-            signingCredentials: creds
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

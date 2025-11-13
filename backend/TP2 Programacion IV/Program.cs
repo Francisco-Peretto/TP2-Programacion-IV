@@ -1,11 +1,7 @@
 ﻿using AutoMapper;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using TP2_Programming_IV.Services;
 using TP2_Programming_IV.Repositories;
 using TP2_Programacion_IV.Services;
@@ -22,41 +18,21 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(connString))
 // ---------- AutoMapper ----------
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-// ---------- Authentication (Cookies + JWT with policy switch) ----------
-var jwtKey =
-    builder.Configuration["Secrets:JWT"]
-    ?? builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("JWT secret not configured (Secrets:JWT or Jwt:Key).");
-
-// Policy scheme decides per-request whether to use Cookie or Bearer
+// ---------- Authentication (Cookies only) ----------
 builder.Services
-    .AddAuthentication(options =>
-    {
-        options.DefaultScheme = "MultiAuth";
-        options.DefaultChallengeScheme = "MultiAuth";
-    })
-    .AddPolicyScheme("MultiAuth", "CookieOrBearer", options =>
-    {
-        options.ForwardDefaultSelector = context =>
-        {
-            var authHeader = context.Request.Headers["Authorization"].ToString();
-            return (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                ? JwtBearerDefaults.AuthenticationScheme
-                : CookieAuthenticationDefaults.AuthenticationScheme;
-        };
-    })
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opt =>
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opt =>
     {
         opt.Cookie.Name = "tp_auth";
         opt.Cookie.HttpOnly = true;
         opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         opt.Cookie.SameSite = SameSiteMode.Strict;
         opt.SlidingExpiration = true;
-        opt.ExpireTimeSpan = TimeSpan.FromDays(1);
+        opt.ExpireTimeSpan = TimeSpan.FromHours(2); // session length
         opt.LoginPath = "/api/auth/login";
         opt.LogoutPath = "/api/auth/logout";
 
-        // ⬇️ important for APIs
+        // ⬇️ For APIs (prevent redirects)
         opt.Events = new CookieAuthenticationEvents
         {
             OnRedirectToLogin = ctx =>
@@ -70,44 +46,10 @@ builder.Services
                 return Task.CompletedTask;
             }
         };
-    })
-    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
-    {
-        opt.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            ClockSkew = TimeSpan.Zero
-        };
     });
 
-builder.Services.AddSwaggerGen(c =>
-{
-    var scheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Paste only the JWT (no 'Bearer ' prefix).",
-        Reference = new Microsoft.OpenApi.Models.OpenApiReference
-        {
-            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-            Id = "Bearer"
-        }
-    };
-
-    c.AddSecurityDefinition("Bearer", scheme);
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        { scheme, Array.Empty<string>() }
-    });
-});
-
-
+// ---------- Authorization ----------
+builder.Services.AddAuthorization();
 
 // ---------- DI: Repositories ----------
 builder.Services.AddScoped<CourseRepository>();
@@ -127,6 +69,7 @@ builder.Services.AddScoped<IEncoderServices, EncoderServices>();
 // ---------- MVC + Swagger ----------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
