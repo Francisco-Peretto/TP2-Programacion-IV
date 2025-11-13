@@ -14,9 +14,15 @@ export default function AdminPanel() {
   const [users, setUsers] = useState([]);
   const [courses, setCourses] = useState([]);
 
+  // enroll form
   const [userId, setUserId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [enrollMsg, setEnrollMsg] = useState("");
+
+  // remove form
+  const [removeUserId, setRemoveUserId] = useState("");
+  const [removeCourseId, setRemoveCourseId] = useState("");
+  const [removeMsg, setRemoveMsg] = useState("");
 
   // ---- helpers for labels ----
   const getUserId = (u) => u.id ?? u.userId ?? u.userID;
@@ -70,14 +76,21 @@ export default function AdminPanel() {
           : [],
       });
 
-      setUsers(Array.isArray(usersData) ? usersData : (usersData.items ?? usersData.data ?? []));
+      // users: array or paged
+      setUsers(
+        Array.isArray(usersData)
+          ? usersData
+          : usersData.items ?? usersData.data ?? []
+      );
 
+      // courses: array or paged
       const extractedCourses = Array.isArray(coursesData)
         ? coursesData
-        : (coursesData.items ?? coursesData.data ?? coursesData.courses ?? []);
-
+        : coursesData.items ??
+          coursesData.data ??
+          coursesData.courses ??
+          [];
       setCourses(extractedCourses);
-
     } catch (err) {
       console.error("Error loading admin metrics:", err);
       setError("No se pudieron cargar las métricas.");
@@ -94,23 +107,45 @@ export default function AdminPanel() {
   const handleEnroll = async (e) => {
     e.preventDefault();
     setEnrollMsg("");
-
     const uid = Number(userId);
     const cid = Number(courseId);
     if (!uid || !cid) {
       setEnrollMsg("Selecciona un usuario y un curso.");
       return;
     }
-
     try {
       await api.post("/Admin/enroll", { userId: uid, courseId: cid });
       setEnrollMsg("Estudiante inscripto correctamente.");
       setUserId("");
       setCourseId("");
-      await loadMetrics(); // refrescar dashboard
+      await loadMetrics();
     } catch (err) {
       console.error("Enroll error:", err);
       setEnrollMsg("Error al inscribir. Verifica los datos.");
+    }
+  };
+
+  // ---- remove action ----
+  const handleUnenroll = async (e) => {
+    e.preventDefault();
+    setRemoveMsg("");
+    const uid = Number(removeUserId);
+    const cid = Number(removeCourseId);
+    if (!uid || !cid) {
+      setRemoveMsg("Selecciona un usuario y un curso.");
+      return;
+    }
+    try {
+      await api.delete("/Admin/enroll", {
+        data: { userId: uid, courseId: cid },
+      });
+      setRemoveMsg("Estudiante eliminado del curso.");
+      setRemoveUserId("");
+      setRemoveCourseId("");
+      await loadMetrics();
+    } catch (err) {
+      console.error("Unenroll error:", err);
+      setRemoveMsg("Error al eliminar. Verifica los datos.");
     }
   };
 
@@ -186,63 +221,125 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            {/* Formulario de inscripción con selects */}
-            <div className="border rounded p-4">
-              <h2 className="text-lg font-semibold mb-3">
-                Inscribir estudiante en curso
-              </h2>
-              <form
-                onSubmit={handleEnroll}
-                className="grid gap-3 md:grid-cols-[2fr,2fr,auto]"
-              >
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="userId">Usuario</label>
-                  <select
-                    id="userId"
-                    className="bg-slate-900 border border-slate-700 rounded px-2 py-1"
-                    value={userId}
-                    onChange={(e) => setUserId(e.target.value)}
-                  >
-                    <option value="">Selecciona un usuario</option>
-                    {selectableUsers.map((u) => (
-                      <option key={getUserId(u)} value={getUserId(u)}>
-                        {getUserLabel(u)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            {/* Panel de inscribir / eliminar */}
+            <div className="border rounded p-4 space-y-6">
+              {/* Inscribir */}
+              <div>
+                <h2 className="text-lg font-semibold mb-3">
+                  Inscribir estudiante en curso
+                </h2>
+                <form
+                  onSubmit={handleEnroll}
+                  className="grid gap-3 md:grid-cols-[2fr,2fr,auto]"
+                >
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="userId">Usuario</label>
+                    <select
+                      id="userId"
+                      className="bg-slate-900 border border-slate-700 rounded px-2 py-1"
+                      value={userId}
+                      onChange={(e) => setUserId(e.target.value)}
+                    >
+                      <option value="">Selecciona un usuario</option>
+                      {selectableUsers.map((u) => (
+                        <option key={getUserId(u)} value={getUserId(u)}>
+                          {getUserLabel(u)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="courseId">Curso</label>
-                  <select
-                    id="courseId"
-                    className="bg-slate-900 border border-slate-700 rounded px-2 py-1"
-                    value={courseId}
-                    onChange={(e) => setCourseId(e.target.value)}
-                  >
-                    <option value="">Selecciona un curso</option>
-                    {courses.map((c) => (
-                      <option key={getCourseId(c)} value={getCourseId(c)}>
-                        {getCourseLabel(c)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="courseId">Curso</label>
+                    <select
+                      id="courseId"
+                      className="bg-slate-900 border border-slate-700 rounded px-2 py-1"
+                      value={courseId}
+                      onChange={(e) => setCourseId(e.target.value)}
+                    >
+                      <option value="">Selecciona un curso</option>
+                      {courses.map((c) => (
+                        <option key={getCourseId(c)} value={getCourseId(c)}>
+                          {getCourseLabel(c)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div className="flex items-end">
-                  <button
-                    type="submit"
-                    className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-500 text-sm font-medium"
-                  >
-                    Inscribir
-                  </button>
-                </div>
-              </form>
+                  <div className="flex items-end">
+                    <button
+                      type="submit"
+                      className="px-3 py-2 rounded bg-blue-600 hover:bg-blue-500 text-sm font-medium"
+                    >
+                      Inscribir
+                    </button>
+                  </div>
+                </form>
+                {enrollMsg && (
+                  <div className="mt-2 text-xs text-gray-300">
+                    {enrollMsg}
+                  </div>
+                )}
+              </div>
 
-              {enrollMsg && (
-                <div className="mt-2 text-xs text-gray-300">{enrollMsg}</div>
-              )}
-              
+              {/* Eliminar */}
+              <div className="border-t border-slate-800 pt-4">
+                <h2 className="text-lg font-semibold mb-3">
+                  Eliminar estudiante de curso
+                </h2>
+                <form
+                  onSubmit={handleUnenroll}
+                  className="grid gap-3 md:grid-cols-[2fr,2fr,auto]"
+                >
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="removeUserId">Usuario</label>
+                    <select
+                      id="removeUserId"
+                      className="bg-slate-900 border border-slate-700 rounded px-2 py-1"
+                      value={removeUserId}
+                      onChange={(e) => setRemoveUserId(e.target.value)}
+                    >
+                      <option value="">Selecciona un usuario</option>
+                      {selectableUsers.map((u) => (
+                        <option key={getUserId(u)} value={getUserId(u)}>
+                          {getUserLabel(u)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label htmlFor="removeCourseId">Curso</label>
+                    <select
+                      id="removeCourseId"
+                      className="bg-slate-900 border border-slate-700 rounded px-2 py-1"
+                      value={removeCourseId}
+                      onChange={(e) => setRemoveCourseId(e.target.value)}
+                    >
+                      <option value="">Selecciona un curso</option>
+                      {courses.map((c) => (
+                        <option key={getCourseId(c)} value={getCourseId(c)}>
+                          {getCourseLabel(c)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-end">
+                    <button
+                      type="submit"
+                      className="px-3 py-2 rounded bg-red-600 hover:bg-red-500 text-sm font-medium"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </form>
+                {removeMsg && (
+                  <div className="mt-2 text-xs text-gray-300">
+                    {removeMsg}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </>

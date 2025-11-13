@@ -41,9 +41,13 @@ public class AdminController : ControllerBase
     [HttpDelete("enroll")]
     public async Task<IActionResult> UnenrollStudent([FromBody] EnrollRequestDTO dto)
     {
-        await _admin.UnenrollStudentAsync(dto.UserId, dto.CourseId);
-        return NoContent(); // 204
+        var removed = await _admin.UnenrollStudentAsync(dto.UserId, dto.CourseId);
+        if (!removed)
+            return NotFound();   // no enrollment with that user+course
+
+        return NoContent();      // 204, ok
     }
+
 
 
 }

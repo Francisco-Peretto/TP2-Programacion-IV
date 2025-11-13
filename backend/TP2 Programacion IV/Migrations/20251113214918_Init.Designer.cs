@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace TP2_Programming_IV.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251113160757_base")]
-    partial class @base
+    [Migration("20251113214918_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,6 +45,33 @@ namespace TP2_Programming_IV.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Enrollment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CourseId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("Enrollments");
                 });
 
             modelBuilder.Entity("Domain.Entities.Role", b =>
@@ -133,6 +160,25 @@ namespace TP2_Programming_IV.Migrations
                     b.ToTable("UserCourses");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Enrollment", b =>
+                {
+                    b.HasOne("Domain.Entities.Course", "Course")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("Enrollments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
                     b.HasOne("Domain.Entities.Role", "Role")
@@ -165,6 +211,8 @@ namespace TP2_Programming_IV.Migrations
 
             modelBuilder.Entity("Domain.Entities.Course", b =>
                 {
+                    b.Navigation("Enrollments");
+
                     b.Navigation("UserCourses");
                 });
 
@@ -175,6 +223,8 @@ namespace TP2_Programming_IV.Migrations
 
             modelBuilder.Entity("Domain.Entities.User", b =>
                 {
+                    b.Navigation("Enrollments");
+
                     b.Navigation("UserCourses");
                 });
 #pragma warning restore 612, 618

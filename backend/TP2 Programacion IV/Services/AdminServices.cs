@@ -18,36 +18,24 @@ public class AdminServices
     // ⬇️ add this method
     public async Task<AdminMetricsDTO> GetMetricsAsync()
     {
-        // all courses
-        var courses = await _ctx.Courses.ToListAsync();
+        // total cursos
+        var totalCourses = await _ctx.Courses.CountAsync();
 
-        // enrollments grouped by course
-        var enrollCounts = await _ctx.Enrollments
-            .GroupBy(e => e.CourseId)
-            .Select(g => new { CourseId = g.Key, Count = g.Count() })
-            .ToListAsync();
-
-        var enrollDict = enrollCounts.ToDictionary(x => x.CourseId, x => x.Count);
-
-        // total courses
-        var totalCourses = courses.Count;
-
-        // total distinct students (anyone enrolled in at least one course)
+        // total estudiantes (distintos) según las inscripciones
         var totalStudents = await _ctx.Enrollments
             .Select(e => e.UserId)
             .Distinct()
             .CountAsync();
 
-        var studentsPerCourse = courses
+        // estudiantes por curso
+        var studentsPerCourse = await _ctx.Courses
             .Select(c => new CourseStudentsDTO
             {
                 CourseId = c.Id,
-                CourseName = c.Name,   // ajusta si tu propiedad se llama distinto
-                StudentCount = enrollDict.TryGetValue(c.Id, out var n) ? n : 0
+                CourseName = c.Name,
+                StudentCount = _ctx.Enrollments.Count(e => e.CourseId == c.Id)
             })
-            .ToList();
-
-
+            .ToListAsync();
 
         return new AdminMetricsDTO
         {
@@ -56,6 +44,7 @@ public class AdminServices
             StudentsPerCourse = studentsPerCourse
         };
     }
+
 
     public async Task EnrollStudentAsync(int userId, int courseId)
     {
@@ -87,17 +76,19 @@ public class AdminServices
         await _ctx.SaveChangesAsync();
     }
 
-    public async Task UnenrollStudentAsync(int userId, int courseId)
+    public async Task<bool> UnenrollStudentAsync(int userId, int courseId)
     {
-        var uc = await _ctx.UserCourses
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.CourseId == courseId);
+        var enrollment = await _ctx.Enrollments
+            .SingleOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
 
-        if (uc != null)
-        {
-            _ctx.UserCourses.Remove(uc);
-            await _ctx.SaveChangesAsync();
-        }
+        if (enrollment == null)
+            return false;   // no vínculo user–course
+
+        _ctx.Enrollments.Remove(enrollment);
+        await _ctx.SaveChangesAsync();
+        return true;
     }
+
 
 
 }
