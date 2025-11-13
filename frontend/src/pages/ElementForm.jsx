@@ -69,7 +69,7 @@ export default function ElementForm({ mode = "create", defaultValues }) {
           {errors.quantity && <p className="text-red-600 text-sm">{errors.quantity.message}</p>}
         </div>
 
-        <button disabled={saving} className="bg-emerald-600 text-white px-4 py-2 rounded disabled:opacity-50">
+        <button disabled={saving} className="btn">
           {saving ? "Guardando…" : "Guardar"}
         </button>
       </form>

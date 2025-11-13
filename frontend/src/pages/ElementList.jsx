@@ -40,7 +40,7 @@ export default function ElementList() {
           <input className="border px-3 py-2" value={category} onChange={e => setCategory(e.target.value)} />
         </div>
         <Link href="/admin/elementos/new" className="ml-auto">
-          <a className="bg-blue-600 text-white px-3 py-2 rounded">Nuevo</a>
+          <a className="btn-primary">Nuevo</a>
         </Link>
       </div>
 

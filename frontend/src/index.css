@@ -51,3 +51,53 @@
   .menu-mobile { @apply hidden md:flex gap-3; }
   .menu-mobile.open { @apply flex md:flex gap-3 absolute left-0 right-0 top-14 bg-surface p-2 border-b border-border; }
 }
+
+
+/* === Formal dark-blue design utilities (added) === */
+:root {
+  --formal-bg: #0f172a;
+  --formal-surface: #0b1220;
+  --formal-text: #e6e9ef;
+  --formal-muted: #9aa4b2;
+  --formal-border: #1f2937;
+  --formal-accent: #1e3a8a;
+}
+
+/* global background and text */
+html.dark body {
+  background-color: var(--formal-bg);
+  color: var(--formal-text);
+}
+
+/* Button system */
+@layer components {
+
+  .btn {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-lg border border-[color:var(--formal-border)] bg-[#0b1220] text-[color:var(--formal-text)] font-medium gap-2 hover:opacity-95 transition;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[color:var(--formal-accent)] text-white font-semibold shadow-sm hover:brightness-95 transition;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-800 text-white font-semibold hover:bg-red-700 transition;
+  }
+
+  .card {
+    @apply bg-[color:var(--formal-surface)] border border-[color:var(--formal-border)] rounded-2xl p-6 shadow-sm;
+  }
+
+  .input {
+    @apply w-full rounded-lg px-3 py-2 bg-[#07101a] text-[color:var(--formal-text)] border border-[color:var(--formal-border)] focus:outline-none focus:ring-2 focus:ring-[color:var(--formal-accent)]/30;
+  }
+  .muted { @apply text-[color:var(--formal-muted)]; }
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* ensure dark mode class is used by default if not present */

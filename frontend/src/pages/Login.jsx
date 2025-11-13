@@ -54,7 +54,7 @@ export default function Login() {
           <input type="password" className="border px-3 py-2 w-full" {...register("password")} />
           {errors.password && <p className="text-red-600 text-sm">{errors.password.message}</p>}
         </div>
-        <button disabled={submitting} className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50">
+        <button disabled={submitting} className="btn-primary">
           {submitting ? "Ingresando…" : "Ingresar"}
         </button>
       </form>
