@@ -28,4 +28,5 @@ public class User
 
     // 🔹 Many-to-many (User ↔ Course)
     public ICollection<Domain.UserCourse.UserCourse> UserCourses { get; set; } = new List<Domain.UserCourse.UserCourse>();
+    public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 }

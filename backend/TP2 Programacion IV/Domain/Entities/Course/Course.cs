@@ -16,4 +16,5 @@ public class Course
     public string? Description { get; set; }
 
     public ICollection<Domain.UserCourse.UserCourse> UserCourses { get; set; } = new List<Domain.UserCourse.UserCourse>();
+    public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 }

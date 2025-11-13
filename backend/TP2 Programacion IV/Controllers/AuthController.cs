@@ -18,10 +18,20 @@ public class AuthController : ControllerBase
 
     // GET /api/auth/whoami
     [HttpGet("whoami")]
-    [Authorize]
+    [AllowAnonymous]   // ⬅️ TEMPORARY for debugging
     public IActionResult WhoAmI()
     {
-        return Ok(User.Claims.Select(c => new { c.Type, c.Value }));
+        var identity = User?.Identity;
+
+        var result = new
+        {
+            IsAuthenticated = identity?.IsAuthenticated ?? false,
+            Name = identity?.Name,
+            AuthType = identity?.AuthenticationType,
+            Claims = User?.Claims.Select(c => new { c.Type, c.Value }).ToList()
+        };
+
+        return Ok(result);
     }
 
     // POST /api/auth/login

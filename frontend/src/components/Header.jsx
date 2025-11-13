@@ -55,7 +55,7 @@ export default function Header() {
 
           {showAdmin && (
             <Link href="/admin" className={navClass("/admin")}>
-              Admin
+              Dashboard   {/* ⬅️ changed label here */}
             </Link>
           )}
 

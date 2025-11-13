@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<UserCourse> UserCourses => Set<UserCourse>();
+    public DbSet<Enrollment> Enrollments { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,5 +56,21 @@ public class AppDbContext : DbContext
             new Role { Id = 1, Name = "Admin" },
             new Role { Id = 2, Name = "Student" }
         );
+
+        modelBuilder.Entity<Enrollment>(e =>
+        {
+            e.HasKey(x => x.Id);
+
+            e.HasOne(x => x.Course)
+                .WithMany(c => c.Enrollments)
+                .HasForeignKey(x => x.CourseId);
+
+            e.HasOne(x => x.User)
+                .WithMany(u => u.Enrollments)
+                .HasForeignKey(x => x.UserId);
+
+            // un estudiante no puede estar dos veces en el mismo curso
+            e.HasIndex(x => new { x.CourseId, x.UserId }).IsUnique();
+        });
     }
 }

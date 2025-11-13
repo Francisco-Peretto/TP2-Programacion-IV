@@ -28,13 +28,13 @@ builder.Services.AddCors(opt =>
     {
         policy
             .WithOrigins(
-                "http://localhost:5173",   // Vite
+                "http://localhost:5173",   // 
                 "https://localhost:5173",
-                "http://localhost:3000"    // CRA (if you ever use it)
+                "http://localhost:3000"    // 
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); // because you're using cookies
+            .AllowCredentials(); // 
     });
 });
 
@@ -45,8 +45,8 @@ builder.Services
     {
         opt.Cookie.Name = "tp_auth";
         opt.Cookie.HttpOnly = true;
-        opt.Cookie.SecurePolicy = CookieSecurePolicy.None; // permite http://localhost
-        opt.Cookie.SameSite = SameSiteMode.None;           // requerido cuando usás cookies cross-site
+        opt.Cookie.SecurePolicy = CookieSecurePolicy.Always; // 
+        opt.Cookie.SameSite = SameSiteMode.None;           // 
         opt.SlidingExpiration = true;
         opt.ExpireTimeSpan = TimeSpan.FromHours(2);
         opt.LoginPath = "/api/auth/login";
@@ -88,7 +88,31 @@ builder.Services.AddScoped<IEncoderServices, EncoderServices>();
 
 // ---------- Swagger ----------
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("cookieAuth", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        In = Microsoft.OpenApi.Models.ParameterLocation.Cookie,
+        Name = "tp_auth",
+        Description = "Cookie-based auth"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "cookieAuth"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
