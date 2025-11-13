@@ -1,0 +1,15 @@
+﻿@"
+.vs/
+.vscode/
+.idea/
+**/bin/
+**/obj/
+**/Debug/
+**/Release/
+*.user
+*.suo
+*.rsuser
+*.DotSettings.user
+*.sln.ide
+appsettings.Development.json
+"@ | Out-File -Encoding UTF8 .gitignore

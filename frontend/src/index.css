@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0f1115;
+  --color-surface: #151924;
+  --color-muted: #9aa4b2;
+  --color-text: #e6e9ef;
+  --color-brand: #6ea8fe;
+  --color-ok: #3ddc97;
+  --color-danger: #ff6b6b;
+  --color-border: #22283a;
+}
+
+/* Base */
+@layer base {
+  html, body, #root { height: 100%; }
+  body { @apply bg-bg text-text antialiased; }
+  a { @apply text-inherit no-underline; }
+}
+
+/* Components */
+@layer components {
+  .container { @apply container max-w-[1100px]; }
+
+  .nav { @apply sticky top-0 z-10 bg-bg/75 backdrop-blur border-b border-border; }
+  .nav-inner { @apply flex items-center justify-between gap-3 py-3; }
+  .brand { @apply flex items-center gap-2 font-bold tracking-tight; }
+  .brand-dot { @apply w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_14px_0_#6ea8fe]; }
+
+  .menu a { @apply px-3 py-2 rounded-lg text-muted hover:text-text hover:bg-surface hover:border hover:border-border; }
+
+  .auth { @apply flex items-center gap-2; }
+  .pill { @apply px-2 py-1 rounded-full border border-border bg-surface text-muted; }
+
+  .btn { @apply px-3 py-2 rounded-md border border-border bg-gradient-to-b from-[#1a2030] to-[#141926] text-text cursor-pointer transition hover:-translate-y-px; }
+  .btn-danger { @apply border-[#2a1212] bg-[#1a1010] text-[#ffb3b3]; }
+
+  .hero { @apply my-5 p-4 border border-border rounded-2xl bg-surface; }
+  .card { @apply bg-surface border border-border rounded-2xl p-4; }
+  .muted { @apply text-muted; }
+  .footer { @apply text-muted text-sm text-center py-4; }
+
+  .btn-block { @apply block text-center; }
+
+  input, textarea, select { @apply bg-[#0f121a] text-text border border-border rounded-lg px-3 py-2; }
+  input:focus, textarea:focus, select:focus { @apply outline-none border-brand ring-2 ring-brand/25; }
+}
+
+/* Utilities for responsive menu */
+@layer utilities {
+  .menu-mobile { @apply hidden md:flex gap-3; }
+  .menu-mobile.open { @apply flex md:flex gap-3 absolute left-0 right-0 top-14 bg-surface p-2 border-b border-border; }
+}
+
+
+/* === Formal dark-blue design utilities (added) === */
+:root {
+  --formal-bg: #0f172a;
+  --formal-surface: #0b1220;
+  --formal-text: #e6e9ef;
+  --formal-muted: #9aa4b2;
+  --formal-border: #1f2937;
+  --formal-accent: #1e3a8a;
+}
+
+/* global background and text */
+html.dark body {
+  background-color: var(--formal-bg);
+  color: var(--formal-text);
+}
+
+/* Button system */
+@layer components {
+
+  .btn {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-lg border border-[color:var(--formal-border)] bg-[#0b1220] text-[color:var(--formal-text)] font-medium gap-2 hover:opacity-95 transition;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[color:var(--formal-accent)] text-white font-semibold shadow-sm hover:brightness-95 transition;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-800 text-white font-semibold hover:bg-red-700 transition;
+  }
+
+  .card {
+    @apply bg-[color:var(--formal-surface)] border border-[color:var(--formal-border)] rounded-2xl p-6 shadow-sm;
+  }
+
+  .input {
+    @apply w-full rounded-lg px-3 py-2 bg-[#07101a] text-[color:var(--formal-text)] border border-[color:var(--formal-border)] focus:outline-none focus:ring-2 focus:ring-[color:var(--formal-accent)]/30;
+  }
+  .muted { @apply text-[color:var(--formal-muted)]; }
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* ensure dark mode class is used by default if not present */
